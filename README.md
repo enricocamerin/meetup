@@ -11,7 +11,7 @@ un'email, approva o rifiuta, e chi ha chiesto riceve l'email con la risposta
 - Dati, login e file: Supabase, progetto `meetup` (eu-west-1). Schema e permessi in
   `supabase/migrations/`. La chiave nella pagina è quella pubblica: i dati sono
   protetti dalle regole Row Level Security.
-- Sito: Netlify (statico, pubblica la radice del repository).
+- Sito: GitHub Pages, https://enricocamerin.github.io/meetup/ (repository pubblico; `.github/workflows/pages.yml` pubblica solo `index.html` e `robots.txt` a ogni push su `main`). Dal 2026-11-10, prima era su Netlify (`meetup-hiking`, fermo per crediti esauriti). `_headers` e `_redirects` restano per Netlify e non servono su Pages.
 
 ## Chi può fare cosa
 

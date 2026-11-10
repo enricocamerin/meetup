@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
   const transport = nodemailer.createTransport({
     host: Deno.env.get("SMTP_HOST") || "smtp.gmail.com", port, secure: port === 465, auth: { user, pass },
   });
-  const app = Deno.env.get("APP_URL") || "https://meetup-hiking.netlify.app";
+  const app = Deno.env.get("APP_URL") || "https://enricocamerin.github.io/meetup/";
   const span = ev.starts_on === ev.ends_on ? day(ev.starts_on) : `${day(ev.starts_on)} → ${day(ev.ends_on)}`;
 
   // A new request: tell the administrators (only the requester can trigger it, while pending).
