@@ -166,7 +166,7 @@ table.org td.e{overflow-wrap:anywhere}
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script>
 "use strict";
-const BUILD = "v2-en";
+const BUILD = "v3-notify";
 const SB_URL = "https://quzothoggtwvuvglyeph.supabase.co";
 const SB_KEY = "sb_publishable_dy_Mm9mK5Nzsnf5vd-00fQ_x39t3FWY"; // public key: data is protected by Row Level Security
 const BUCKET = "event-files";
@@ -426,7 +426,13 @@ async function decide(id, status, note) {
   const row = { status }; if (note !== undefined) row.admin_note = note;
   const { error } = await sb.from("events").update(row).eq("id", id);
   if (error) { toast("Error: " + error.message); return; }
-  toast(status === "approved" ? "Event approved" : status === "rejected" ? "Event rejected" : "Event back to pending");
+  let msg = status === "approved" ? "Event approved" : status === "rejected" ? "Event rejected" : "Event back to pending";
+  if (status !== "pending") {
+    const r = await sb.functions.invoke("notify-decision", { body: { event_id: id } });
+    msg += r.error ? " · email NOT sent to the organizer" : " · email sent to the organizer";
+    if (r.error) console.warn("notify-decision", r.error);
+  }
+  toast(msg);
   await reload();
   if (!$("#veil").classList.contains("hidden")) openDetail(id);
 }
