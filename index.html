@@ -25,7 +25,7 @@ header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px
 header .logo{font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
 header .logo svg{flex:none}
 header .sp{flex:1}
-header .who{font-size:13px;color:var(--muted);max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .who{border:0;background:none;cursor:pointer;padding:4px;font-size:13px;color:var(--muted);max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 main{max-width:1100px;margin:0 auto;padding:16px}
 .btn{border:1px solid var(--edge);background:var(--card);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600;min-height:40px}
 .btn:hover{background:#F6F8F5}
@@ -117,15 +117,15 @@ table.org td.e{overflow-wrap:anywhere}
     Meetup Hiking
   </div>
   <div class="sp"></div>
-  <span class="who" id="who"></span>
-  <button class="btn sm hidden" id="bOrg">Organizers</button>
+  <button class="who" id="who" title="Change your name"></button>
+  <button class="btn sm hidden" id="bOrg">People</button>
   <button class="btn sm hidden" id="bOut">Sign out</button>
 </header>
 
 <main>
   <section id="vLogin" class="card login hidden">
-    <h1>Organizer sign-in</h1>
-    <p>Enter your email: we will send you a sign-in link, no password needed.</p>
+    <h1>Request a hiking event</h1>
+    <p>Enter your email: we will send you a sign-in link, no password needed. Then pick a day in the calendar and send your request.</p>
     <form id="fLogin">
       <label for="lEmail">Email</label>
       <input id="lEmail" type="email" autocomplete="email" required>
@@ -166,7 +166,7 @@ table.org td.e{overflow-wrap:anywhere}
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script>
 "use strict";
-const BUILD = "v3-notify";
+const BUILD = "v4-public";
 const SB_URL = "https://quzothoggtwvuvglyeph.supabase.co";
 const SB_KEY = "sb_publishable_dy_Mm9mK5Nzsnf5vd-00fQ_x39t3FWY"; // public key: data is protected by Row Level Security
 const BUCKET = "event-files";
@@ -189,7 +189,10 @@ function show(id) { for (const v of ["vLogin", "vNo", "vApp"]) $("#" + v).classL
 const fmtD = d => new Date(d + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
 function rangeTxt(e) { return e.starts_on === e.ends_on ? fmtD(e.starts_on) : fmtD(e.starts_on) + " → " + fmtD(e.ends_on); }
 function addDays(d, n) { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); }
-function orgName(email) { const o = ORGS.find(o => o.email === email); return o && o.name ? o.name : email; }
+function orgName(e) {
+  if (typeof e === "string") { const o = ORGS.find(o => o.email === e); return o && o.name ? o.name : e; }
+  return e.organizer_name || (isAdmin() || e.organizer_email === me.email ? e.organizer_email : "—");
+}
 const isAdmin = () => me && me.role === "admin";
 
 /* ---------- auth ---------- */
@@ -212,17 +215,34 @@ async function boot() {
   const email = (session.user.email || "").toLowerCase();
   $("#who").textContent = email;
   $("#bOut").classList.remove("hidden");
-  const { data, error } = await sb.from("organizers").select("*").eq("email", email).maybeSingle();
+  const { data, error } = await sb.rpc("ensure_me");
   if (error || !data) {
-    $("#noTxt").textContent = `The email ${email} is not on the organizers list. Ask the administrator to add it.`;
+    $("#noTxt").textContent = `Could not open your account (${email}). Please try again later.`;
     show("vNo"); return;
   }
   me = data;
-  $("#who").textContent = (me.name || email) + (isAdmin() ? " · admin" : "");
+  drawWho();
   $("#bOrg").classList.toggle("hidden", !isAdmin());
   show("vApp");
   initCal();
   await reload();
+  if (!me.name) askName(true);
+}
+function drawWho() { $("#who").textContent = (me.name || me.email) + (isAdmin() ? " · admin" : ""); }
+$("#who").addEventListener("click", () => me && askName(false));
+function askName(first) {
+  openSheet(`<h2>${first ? "Welcome!" : "Your name"}</h2>
+    <div class="sub">${first ? "Tell us your name: it is shown next to the events you request." : "Shown next to the events you request."}</div>
+    <form id="fName"><label for="nN">Name and surname</label>
+      <input id="nN" type="text" maxlength="80" required value="${esc(me.name)}">
+      <div class="acts"><div class="sp"></div><button class="btn pri">Save</button></div></form>`);
+  $("#fName").onsubmit = async ev => {
+    ev.preventDefault();
+    const n = $("#nN").value.trim(); if (!n) return;
+    const { error } = await sb.rpc("set_my_name", { n });
+    if (error) { toast("Error: " + error.message); return; }
+    me.name = n; drawWho(); closeSheet(); reload();
+  };
 }
 sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_IN" && !me) boot(); });
 
@@ -230,7 +250,7 @@ sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_IN" && !me) boot(); });
 async function reload() {
   const [ev, og] = await Promise.all([
     sb.from("events").select("*").order("starts_on"),
-    sb.from("organizers").select("*").order("name")
+    isAdmin() ? sb.from("organizers").select("*").order("name") : Promise.resolve({ data: [me] })
   ]);
   if (ev.error) { toast("Could not load the events"); return; }
   EVENTS = ev.data; ORGS = og.data || [];
@@ -260,17 +280,17 @@ function drawCal() {
   for (const e of visible()) {
     cal.addEvent({
       id: e.id, start: e.starts_on, end: addDays(e.ends_on, 1), allDay: true,
-      title: (e.status === "pending" ? "⏳ " : "") + e.title + " · " + orgName(e.organizer_email),
+      title: (e.status === "pending" ? "⏳ " : "") + e.title + " · " + orgName(e),
       extendedProps: { status: e.status }
     });
   }
 }
 function drawPend() {
   const list = EVENTS.filter(e => e.status === "pending" && (isAdmin() || e.organizer_email === me.email));
-  const h = isAdmin() ? "To approve" : "My pending events";
+  const h = isAdmin() ? "To approve" : "My requests waiting for approval";
   $("#pend").innerHTML = `<h2>${h} · ${list.length}</h2>` + (list.length ? list.map(e => `
     <div class="row">
-      <div class="t"><b>${esc(e.title)}</b><small>${esc(rangeTxt(e))} · ${esc(orgName(e.organizer_email))}</small></div>
+      <div class="t"><b>${esc(e.title)}</b><small>${esc(rangeTxt(e))} · ${esc(orgName(e))}</small></div>
       ${isAdmin() ? `<button class="btn sm ok" data-ap="${e.id}">Approve</button><button class="btn sm no" data-rj="${e.id}">Reject</button>` : ""}
       <button class="btn sm" data-op="${e.id}">Open</button>
     </div>`).join("") : `<small style="color:var(--muted)">Nothing pending.</small>`);
@@ -313,7 +333,7 @@ function openForm(id, day) {
   const e = id ? EVENTS.find(x => x.id === id) : { title: "", description: "", starts_on: day, ends_on: day, meeting_point: "", difficulty: "", max_people: "" };
   openSheet(`
     <h2>${id ? "Edit event" : "Propose an event"}</h2>
-    <div class="sub">${id ? "" : "The event stays pending until the administrator approves it."}</div>
+    <div class="sub">${id ? "" : "Your request stays pending until the administrator approves it. You will get an email with the answer."}</div>
     <form id="fEv">
       <label for="eT">Title</label><input id="eT" type="text" maxlength="200" required value="${esc(e.title)}">
       <div class="grid2">
@@ -329,7 +349,7 @@ function openForm(id, day) {
       </div>
       <label for="eX">Description</label><textarea id="eX">${esc(e.description)}</textarea>
       <div class="acts"><button type="button" class="btn" id="eC">Cancel</button><div class="sp"></div>
-        <button class="btn pri" id="eOk">${id ? "Save" : "Send for approval"}</button></div>
+        <button class="btn pri" id="eOk">${id ? "Save" : "Send request"}</button></div>
     </form>`);
   const warn = () => {
     const s = $("#eS").value, en = $("#eE").value || s;
@@ -352,7 +372,8 @@ function openForm(id, day) {
                  : await sb.from("events").insert(row).select().single();
     $("#eOk").disabled = false;
     if (r.error) { toast("Error: " + r.error.message); return; }
-    toast(id ? "Event saved" : "Event sent: waiting for approval");
+    toast(id ? "Event saved" : "Request sent: you will get an email when it is approved");
+    if (!id) sb.functions.invoke("notify-decision", { body: { event_id: r.data.id, kind: "new" } }).then(x => { if (x.error) console.warn("notify new", x.error); });
     await reload(); openDetail(r.data.id);
   };
 }
@@ -370,7 +391,7 @@ async function openDetail(id) {
     <div class="sub">${esc(rangeTxt(e))}</div>
     ${o.length && e.status !== "rejected" ? `<div class="warn">Already approved on the same days: ${o.map(x => esc(x.title)).join(", ")}</div>` : ""}
     <dl class="kv">
-      <dt>Organizer</dt><dd>${esc(orgName(e.organizer_email))}</dd>
+      <dt>Organizer</dt><dd>${esc(orgName(e))}</dd>
       ${e.meeting_point ? `<dt>Meeting point</dt><dd>${esc(e.meeting_point)}</dd>` : ""}
       ${e.difficulty ? `<dt>Difficulty</dt><dd>${esc(e.difficulty)}</dd>` : ""}
       ${e.max_people ? `<dt>Max people</dt><dd>${esc(e.max_people)}</dd>` : ""}
@@ -484,9 +505,10 @@ async function upload(id, files) {
 $("#bOrg").onclick = openOrgs;
 function openOrgs() {
   openSheet(`
-    <h2>Organizers</h2>
-    <div class="sub">Only the emails on this list can sign in to the portal.</div>
-    <table class="org"><tbody>${ORGS.map(o => `<tr>
+    <h2>People</h2>
+    <div class="sub">Everyone who has signed in. Tick "administrator" for those who can approve.</div>
+    <input id="oQ" type="text" placeholder="Search name or email" style="margin:6px 0 4px">
+    <table class="org"><tbody>${ORGS.map(o => `<tr data-q="${esc((o.name + " " + o.email).toLowerCase())}">
       <td class="e"><b>${esc(o.name || "—")}</b><br><small>${esc(o.email)}</small></td>
       <td>${o.role === "admin" ? `<span class="badge approved">admin</span>` : ""}</td>
       <td style="text-align:right">${o.email !== me.email ? `<button class="btn sm no" data-del="${esc(o.email)}">Remove</button>` : ""}</td>
@@ -496,10 +518,12 @@ function openOrgs() {
         <div><label for="oN">Name</label><input id="oN" type="text" required></div>
         <div><label for="oE">Email</label><input id="oE" type="email" required></div>
       </div>
-      <label><input type="checkbox" id="oA" style="width:auto;min-height:0"> Also administrator (can approve)</label>
+      <label><input type="checkbox" id="oA" style="width:auto;min-height:0"> Administrator (can approve)</label>
       <div class="acts"><button type="button" class="btn" id="oC">Close</button><div class="sp"></div><button class="btn pri">＋ Add</button></div>
     </form>`);
   $("#oC").onclick = closeSheet;
+  $("#oQ").oninput = () => { const q = $("#oQ").value.trim().toLowerCase();
+    $("#sheet").querySelectorAll("tr[data-q]").forEach(t => t.classList.toggle("hidden", !!q && !t.dataset.q.includes(q))); };
   $("#sheet").querySelector("table").onclick = async ev => {
     const b = ev.target.closest("[data-del]"); if (!b) return;
     if (!confirm("Remove " + b.dataset.del + " from the organizers?")) return;

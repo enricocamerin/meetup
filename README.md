@@ -1,8 +1,10 @@
 # Meetup Hiking · calendario organizzatori
 
-Portale per gli organizzatori di escursioni: ognuno entra con la sua email (link
-senza password), vede il calendario, propone un evento nei giorni liberi e carica i
-file (GPX, PDF, locandine). L'amministratore approva o rifiuta.
+Portale pubblico per richiedere escursioni (interfaccia in inglese): chiunque entra
+con la sua email (link senza password), vede il calendario degli eventi approvati,
+chiede un evento e carica i file (GPX, PDF, locandine). L'amministratore riceve
+un'email, approva o rifiuta, e chi ha chiesto riceve l'email con la risposta
+(funzione `supabase/functions/notify-decision`, Gmail SMTP, segreti SMTP_USER / SMTP_PASS).
 
 - `index.html`: tutta l'app (HTML, CSS, JS, nessun build). Librerie da jsdelivr con
   versione fissa: supabase-js 2.45.4 (MIT), FullCalendar 6.1.15 (MIT).
@@ -13,14 +15,15 @@ file (GPX, PDF, locandine). L'amministratore approva o rifiuta.
 
 ## Chi può fare cosa
 
-| | Organizzatore | Admin |
+| | Chi si iscrive | Admin |
 |---|---|---|
-| Vede il calendario e i file | ✓ | ✓ |
+| Vede gli eventi approvati e i loro file | ✓ | ✓ |
+| Vede le richieste degli altri | | ✓ |
 | Propone un evento (nasce "in attesa") | ✓ | ✓ |
 | Modifica / elimina il suo evento | solo finché è in attesa | sempre |
 | Carica file su un evento | solo sui suoi | su tutti |
 | Approva / rifiuta / rimette in attesa | | ✓ |
-| Aggiunge o toglie organizzatori | | ✓ |
+| Nomina altri admin, toglie persone | | ✓ |
 
-Solo le email nella tabella `organizers` vedono qualcosa; chiunque altro, anche se
-riceve il link, vede "Accesso non abilitato".
+Chi entra per la prima volta viene aggiunto da solo alla tabella `organizers`
+(`ensure_me`) e gli si chiede il nome, che compare sugli eventi al posto dell'email.
