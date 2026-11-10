@@ -1,6 +1,6 @@
 # Meetup Hiking
 
-Leggi prima il README. Il proprietario scrive in italiano; l'interfaccia è in italiano.
+Leggi prima il README. Il proprietario scrive in italiano; l'interfaccia è in inglese (richiesta del proprietario, 2026-11-10).
 
 - Una sola pagina, `index.html`, senza build. Cambia `const BUILD` a ogni modifica.
 - Supabase project id `quzothoggtwvuvglyeph` (org Ensei). Ogni modifica allo schema:

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Meetup Hiking · Calendario organizzatori</title>
+<title>Meetup Hiking · Organizers calendar</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -118,42 +118,42 @@ table.org td.e{overflow-wrap:anywhere}
   </div>
   <div class="sp"></div>
   <span class="who" id="who"></span>
-  <button class="btn sm hidden" id="bOrg">Organizzatori</button>
-  <button class="btn sm hidden" id="bOut">Esci</button>
+  <button class="btn sm hidden" id="bOrg">Organizers</button>
+  <button class="btn sm hidden" id="bOut">Sign out</button>
 </header>
 
 <main>
   <section id="vLogin" class="card login hidden">
-    <h1>Accesso organizzatori</h1>
-    <p>Scrivi la tua email: ti mandiamo un link per entrare, senza password.</p>
+    <h1>Organizer sign-in</h1>
+    <p>Enter your email: we will send you a sign-in link, no password needed.</p>
     <form id="fLogin">
       <label for="lEmail">Email</label>
       <input id="lEmail" type="email" autocomplete="email" required>
-      <button class="btn pri" style="width:100%;margin-top:14px" id="lBtn">Mandami il link</button>
+      <button class="btn pri" style="width:100%;margin-top:14px" id="lBtn">Send me the link</button>
     </form>
     <div id="lMsg"></div>
   </section>
 
   <section id="vNo" class="card login hidden">
-    <h1>Accesso non abilitato</h1>
+    <h1>Access not enabled</h1>
     <p id="noTxt"></p>
-    <button class="btn" id="noOut">Esci</button>
+    <button class="btn" id="noOut">Sign out</button>
   </section>
 
   <section id="vApp" class="hidden">
     <div class="bar">
-      <button class="btn pri" id="bNew">＋ Proponi un evento</button>
+      <button class="btn pri" id="bNew">＋ Propose an event</button>
       <div class="sp"></div>
       <div class="legend">
-        <span style="--c:var(--ok)">Approvato</span>
-        <span style="--c:var(--wait)">In attesa</span>
-        <span style="--c:var(--no)">Rifiutato</span>
+        <span style="--c:var(--ok)">Approved</span>
+        <span style="--c:var(--wait)">Pending</span>
+        <span style="--c:var(--no)">Rejected</span>
       </div>
     </div>
-    <div class="bar" role="group" aria-label="Filtri">
-      <button class="chip" data-f="all" aria-pressed="true">Tutti</button>
-      <button class="chip" data-f="mine" aria-pressed="false">Solo i miei</button>
-      <button class="chip" data-f="rej" aria-pressed="false">Mostra rifiutati</button>
+    <div class="bar" role="group" aria-label="Filters">
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="mine" aria-pressed="false">Only mine</button>
+      <button class="chip" data-f="rej" aria-pressed="false">Show rejected</button>
     </div>
     <div class="card" id="cal"></div>
     <div class="card pend" id="pend"></div>
@@ -164,10 +164,9 @@ table.org td.e{overflow-wrap:anywhere}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/it.global.min.js"></script>
 <script>
 "use strict";
-const BUILD = "v1";
+const BUILD = "v2-en";
 const SB_URL = "https://quzothoggtwvuvglyeph.supabase.co";
 const SB_KEY = "sb_publishable_dy_Mm9mK5Nzsnf5vd-00fQ_x39t3FWY"; // public key: data is protected by Row Level Security
 const BUCKET = "event-files";
@@ -175,7 +174,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true,
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const ST = { pending: "In attesa", approved: "Approvato", rejected: "Rifiutato" };
+const ST = { pending: "Pending", approved: "Approved", rejected: "Rejected" };
 let me = null;          // { email, name, role }
 let EVENTS = [];
 let ORGS = [];
@@ -187,7 +186,7 @@ function toast(t) {
   document.body.appendChild(d); setTimeout(() => d.remove(), 2600);
 }
 function show(id) { for (const v of ["vLogin", "vNo", "vApp"]) $("#" + v).classList.toggle("hidden", v !== id); }
-const fmtD = d => new Date(d + "T12:00:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+const fmtD = d => new Date(d + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
 function rangeTxt(e) { return e.starts_on === e.ends_on ? fmtD(e.starts_on) : fmtD(e.starts_on) + " → " + fmtD(e.ends_on); }
 function addDays(d, n) { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); }
 function orgName(email) { const o = ORGS.find(o => o.email === email); return o && o.name ? o.name : email; }
@@ -201,8 +200,8 @@ $("#fLogin").addEventListener("submit", async ev => {
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
   $("#lBtn").disabled = false;
   $("#lMsg").innerHTML = error
-    ? `<div class="msg err">Non è stato possibile mandare il link: ${esc(error.message)}</div>`
-    : `<div class="msg ok">Fatto. Apri l'email che ti abbiamo mandato a <b>${esc(email)}</b> e tocca il link (guarda anche nello spam).</div>`;
+    ? `<div class="msg err">Could not send the link: ${esc(error.message)}</div>`
+    : `<div class="msg ok">Done. Open the email we sent to <b>${esc(email)}</b> and tap the link (check your spam folder too).</div>`;
 });
 async function logout() { await sb.auth.signOut(); location.reload(); }
 $("#bOut").onclick = logout; $("#noOut").onclick = logout;
@@ -215,7 +214,7 @@ async function boot() {
   $("#bOut").classList.remove("hidden");
   const { data, error } = await sb.from("organizers").select("*").eq("email", email).maybeSingle();
   if (error || !data) {
-    $("#noTxt").textContent = `L'email ${email} non è nell'elenco degli organizzatori. Chiedi all'amministratore di aggiungerla.`;
+    $("#noTxt").textContent = `The email ${email} is not on the organizers list. Ask the administrator to add it.`;
     show("vNo"); return;
   }
   me = data;
@@ -233,7 +232,7 @@ async function reload() {
     sb.from("events").select("*").order("starts_on"),
     sb.from("organizers").select("*").order("name")
   ]);
-  if (ev.error) { toast("Errore nel leggere gli eventi"); return; }
+  if (ev.error) { toast("Could not load the events"); return; }
   EVENTS = ev.data; ORGS = og.data || [];
   drawCal(); drawPend();
 }
@@ -245,9 +244,9 @@ function visible() {
 function initCal() {
   if (cal) return;
   cal = new FullCalendar.Calendar($("#cal"), {
-    locale: "it", firstDay: 1, initialView: "dayGridMonth", height: "auto",
+    locale: "en", firstDay: 1, initialView: "dayGridMonth", height: "auto",
     headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,listYear" },
-    buttonText: { today: "Oggi", month: "Mese", list: "Elenco" },
+    buttonText: { today: "Today", month: "Month", list: "List" },
     dayMaxEvents: 3, fixedWeekCount: false,
     dateClick: info => openForm(null, info.dateStr),
     eventClick: info => { info.jsEvent.preventDefault(); openDetail(info.event.id); },
@@ -268,13 +267,13 @@ function drawCal() {
 }
 function drawPend() {
   const list = EVENTS.filter(e => e.status === "pending" && (isAdmin() || e.organizer_email === me.email));
-  const h = isAdmin() ? "Da approvare" : "I miei eventi in attesa";
+  const h = isAdmin() ? "To approve" : "My pending events";
   $("#pend").innerHTML = `<h2>${h} · ${list.length}</h2>` + (list.length ? list.map(e => `
     <div class="row">
       <div class="t"><b>${esc(e.title)}</b><small>${esc(rangeTxt(e))} · ${esc(orgName(e.organizer_email))}</small></div>
-      ${isAdmin() ? `<button class="btn sm ok" data-ap="${e.id}">Approva</button><button class="btn sm no" data-rj="${e.id}">Rifiuta</button>` : ""}
-      <button class="btn sm" data-op="${e.id}">Apri</button>
-    </div>`).join("") : `<small style="color:var(--muted)">Niente in attesa.</small>`);
+      ${isAdmin() ? `<button class="btn sm ok" data-ap="${e.id}">Approve</button><button class="btn sm no" data-rj="${e.id}">Reject</button>` : ""}
+      <button class="btn sm" data-op="${e.id}">Open</button>
+    </div>`).join("") : `<small style="color:var(--muted)">Nothing pending.</small>`);
 }
 $("#pend").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -313,30 +312,30 @@ function overlaps(start, end, skipId) {
 function openForm(id, day) {
   const e = id ? EVENTS.find(x => x.id === id) : { title: "", description: "", starts_on: day, ends_on: day, meeting_point: "", difficulty: "", max_people: "" };
   openSheet(`
-    <h2>${id ? "Modifica evento" : "Proponi un evento"}</h2>
-    <div class="sub">${id ? "" : "L'evento resta in attesa finché l'amministratore non lo approva."}</div>
+    <h2>${id ? "Edit event" : "Propose an event"}</h2>
+    <div class="sub">${id ? "" : "The event stays pending until the administrator approves it."}</div>
     <form id="fEv">
-      <label for="eT">Titolo</label><input id="eT" type="text" maxlength="200" required value="${esc(e.title)}">
+      <label for="eT">Title</label><input id="eT" type="text" maxlength="200" required value="${esc(e.title)}">
       <div class="grid2">
-        <div><label for="eS">Dal</label><input id="eS" type="date" required value="${esc(e.starts_on)}"></div>
-        <div><label for="eE">Al</label><input id="eE" type="date" required value="${esc(e.ends_on)}"></div>
+        <div><label for="eS">From</label><input id="eS" type="date" required value="${esc(e.starts_on)}"></div>
+        <div><label for="eE">To</label><input id="eE" type="date" required value="${esc(e.ends_on)}"></div>
       </div>
       <div id="eW"></div>
-      <label for="eM">Ritrovo</label><input id="eM" type="text" value="${esc(e.meeting_point)}" placeholder="Luogo e ora">
+      <label for="eM">Meeting point</label><input id="eM" type="text" value="${esc(e.meeting_point)}" placeholder="Place and time">
       <div class="grid2">
-        <div><label for="eD">Difficoltà</label>
-          <select id="eD">${["", "T · Turistico", "E · Escursionistico", "EE · Esperti", "EEA · Attrezzato"].map(v => `<option ${v === e.difficulty ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></div>
-        <div><label for="eP">Posti massimi</label><input id="eP" type="number" min="1" value="${esc(e.max_people ?? "")}"></div>
+        <div><label for="eD">Difficulty</label>
+          <select id="eD">${["", "T · Easy walk", "E · Hiking trail", "EE · Experienced hikers", "EEA · Equipped route (via ferrata)"].map(v => `<option ${v === e.difficulty ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></div>
+        <div><label for="eP">Max people</label><input id="eP" type="number" min="1" value="${esc(e.max_people ?? "")}"></div>
       </div>
-      <label for="eX">Descrizione</label><textarea id="eX">${esc(e.description)}</textarea>
-      <div class="acts"><button type="button" class="btn" id="eC">Annulla</button><div class="sp"></div>
-        <button class="btn pri" id="eOk">${id ? "Salva" : "Invia per approvazione"}</button></div>
+      <label for="eX">Description</label><textarea id="eX">${esc(e.description)}</textarea>
+      <div class="acts"><button type="button" class="btn" id="eC">Cancel</button><div class="sp"></div>
+        <button class="btn pri" id="eOk">${id ? "Save" : "Send for approval"}</button></div>
     </form>`);
   const warn = () => {
     const s = $("#eS").value, en = $("#eE").value || s;
     if (en < s) $("#eE").value = s;
     const o = s ? overlaps(s, $("#eE").value, id) : [];
-    $("#eW").innerHTML = o.length ? `<div class="warn">In quei giorni c'è già: ${o.map(x => esc(x.title)).join(", ")}</div>` : "";
+    $("#eW").innerHTML = o.length ? `<div class="warn">Already on those days: ${o.map(x => esc(x.title)).join(", ")}</div>` : "";
   };
   $("#eS").onchange = () => { if ($("#eE").value < $("#eS").value) $("#eE").value = $("#eS").value; warn(); };
   $("#eE").onchange = warn; warn();
@@ -352,8 +351,8 @@ function openForm(id, day) {
     const r = id ? await sb.from("events").update(row).eq("id", id).select().single()
                  : await sb.from("events").insert(row).select().single();
     $("#eOk").disabled = false;
-    if (r.error) { toast("Errore: " + r.error.message); return; }
-    toast(id ? "Evento salvato" : "Evento inviato: in attesa di approvazione");
+    if (r.error) { toast("Error: " + r.error.message); return; }
+    toast(id ? "Event saved" : "Event sent: waiting for approval");
     await reload(); openDetail(r.data.id);
   };
 }
@@ -369,31 +368,31 @@ async function openDetail(id) {
     <span class="badge ${e.status}">${ST[e.status]}</span>
     <h2 style="margin-top:8px">${esc(e.title)}</h2>
     <div class="sub">${esc(rangeTxt(e))}</div>
-    ${o.length && e.status !== "rejected" ? `<div class="warn">Negli stessi giorni è già approvato: ${o.map(x => esc(x.title)).join(", ")}</div>` : ""}
+    ${o.length && e.status !== "rejected" ? `<div class="warn">Already approved on the same days: ${o.map(x => esc(x.title)).join(", ")}</div>` : ""}
     <dl class="kv">
-      <dt>Organizzatore</dt><dd>${esc(orgName(e.organizer_email))}</dd>
-      ${e.meeting_point ? `<dt>Ritrovo</dt><dd>${esc(e.meeting_point)}</dd>` : ""}
-      ${e.difficulty ? `<dt>Difficoltà</dt><dd>${esc(e.difficulty)}</dd>` : ""}
-      ${e.max_people ? `<dt>Posti</dt><dd>${esc(e.max_people)}</dd>` : ""}
-      ${e.description ? `<dt>Descrizione</dt><dd>${esc(e.description)}</dd>` : ""}
-      ${e.admin_note ? `<dt>Nota admin</dt><dd>${esc(e.admin_note)}</dd>` : ""}
-      ${e.decided_at ? `<dt>Deciso il</dt><dd>${esc(new Date(e.decided_at).toLocaleString("it-IT"))}</dd>` : ""}
+      <dt>Organizer</dt><dd>${esc(orgName(e.organizer_email))}</dd>
+      ${e.meeting_point ? `<dt>Meeting point</dt><dd>${esc(e.meeting_point)}</dd>` : ""}
+      ${e.difficulty ? `<dt>Difficulty</dt><dd>${esc(e.difficulty)}</dd>` : ""}
+      ${e.max_people ? `<dt>Max people</dt><dd>${esc(e.max_people)}</dd>` : ""}
+      ${e.description ? `<dt>Description</dt><dd>${esc(e.description)}</dd>` : ""}
+      ${e.admin_note ? `<dt>Admin note</dt><dd>${esc(e.admin_note)}</dd>` : ""}
+      ${e.decided_at ? `<dt>Decided on</dt><dd>${esc(new Date(e.decided_at).toLocaleString("en-GB"))}</dd>` : ""}
     </dl>
     ${isAdmin() ? `
-      <label for="dN">Nota per l'organizzatore (facoltativa)</label>
+      <label for="dN">Note for the organizer (optional)</label>
       <input id="dN" type="text" value="${esc(e.admin_note)}">
       <div class="acts">
-        ${e.status !== "approved" ? `<button class="btn ok" id="dA">✓ Approva</button>` : ""}
-        ${e.status !== "rejected" ? `<button class="btn no" id="dR">✕ Rifiuta</button>` : ""}
-        ${e.status !== "pending" ? `<button class="btn" id="dP">Rimetti in attesa</button>` : ""}
+        ${e.status !== "approved" ? `<button class="btn ok" id="dA">✓ Approve</button>` : ""}
+        ${e.status !== "rejected" ? `<button class="btn no" id="dR">✕ Reject</button>` : ""}
+        ${e.status !== "pending" ? `<button class="btn" id="dP">Back to pending</button>` : ""}
       </div>` : ""}
-    <div class="files"><h3>File</h3><div id="fl"><small>Caricamento…</small></div>
-      ${canFiles ? `<label class="drop" id="drop">Tocca per caricare un file (GPX, PDF, foto…, max 50 MB)
+    <div class="files"><h3>Files</h3><div id="fl"><small>Loading…</small></div>
+      ${canFiles ? `<label class="drop" id="drop">Tap to upload a file (GPX, PDF, photos…, max 50 MB)
         <input type="file" id="fIn" multiple class="hidden"></label>` : ""}
     </div>
     <div class="acts">
-      ${canEdit ? `<button class="btn" id="dE">Modifica</button><button class="btn no" id="dX">Elimina</button>` : ""}
-      <div class="sp"></div><button class="btn" id="dC">Chiudi</button>
+      ${canEdit ? `<button class="btn" id="dE">Edit</button><button class="btn no" id="dX">Delete</button>` : ""}
+      <div class="sp"></div><button class="btn" id="dC">Close</button>
     </div>`);
   $("#dC").onclick = closeSheet;
   if (isAdmin()) {
@@ -405,12 +404,12 @@ async function openDetail(id) {
   if (canEdit) {
     $("#dE").onclick = () => openForm(id);
     $("#dX").onclick = async () => {
-      if (!confirm("Eliminare l'evento e i suoi file?")) return;
+      if (!confirm("Delete the event and its files?")) return;
       const { data: fs } = await sb.from("event_files").select("path").eq("event_id", id);
       if (fs && fs.length) await sb.storage.from(BUCKET).remove(fs.map(f => f.path));
       const { error } = await sb.from("events").delete().eq("id", id);
-      if (error) { toast("Errore: " + error.message); return; }
-      toast("Evento eliminato"); closeSheet(); reload();
+      if (error) { toast("Error: " + error.message); return; }
+      toast("Event deleted"); closeSheet(); reload();
     };
   }
   if (canFiles) {
@@ -426,8 +425,8 @@ async function openDetail(id) {
 async function decide(id, status, note) {
   const row = { status }; if (note !== undefined) row.admin_note = note;
   const { error } = await sb.from("events").update(row).eq("id", id);
-  if (error) { toast("Errore: " + error.message); return; }
-  toast(status === "approved" ? "Evento approvato" : status === "rejected" ? "Evento rifiutato" : "Evento rimesso in attesa");
+  if (error) { toast("Error: " + error.message); return; }
+  toast(status === "approved" ? "Event approved" : status === "rejected" ? "Event rejected" : "Event back to pending");
   await reload();
   if (!$("#veil").classList.contains("hidden")) openDetail(id);
 }
@@ -437,23 +436,23 @@ const kb = n => n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Mat
 async function drawFiles(id, canFiles) {
   const box = $("#fl"); if (!box) return;
   const { data, error } = await sb.from("event_files").select("*").eq("event_id", id).order("created_at");
-  if (error) { box.innerHTML = `<small>Errore nel leggere i file.</small>`; return; }
-  if (!data.length) { box.innerHTML = `<small style="color:var(--muted)">Nessun file.</small>`; return; }
+  if (error) { box.innerHTML = `<small>Could not load the files.</small>`; return; }
+  if (!data.length) { box.innerHTML = `<small style="color:var(--muted)">No files yet.</small>`; return; }
   box.innerHTML = data.map(f => `<div class="file">
       <a href="#" data-dl="${esc(f.path)}" data-n="${esc(f.name)}">${esc(f.name)}</a>
       <small>${f.size ? kb(f.size) : ""}</small>
-      ${canFiles ? `<button class="btn sm" data-rm="${f.id}" data-p="${esc(f.path)}" aria-label="Elimina ${esc(f.name)}">✕</button>` : ""}
+      ${canFiles ? `<button class="btn sm" data-rm="${f.id}" data-p="${esc(f.path)}" aria-label="Delete ${esc(f.name)}">✕</button>` : ""}
     </div>`).join("");
   box.onclick = async ev => {
     const a = ev.target.closest("[data-dl]"), r = ev.target.closest("[data-rm]");
     if (a) {
       ev.preventDefault();
       const { data: s, error } = await sb.storage.from(BUCKET).createSignedUrl(a.dataset.dl, 600, { download: a.dataset.n });
-      if (error) { toast("Errore: " + error.message); return; }
+      if (error) { toast("Error: " + error.message); return; }
       location.href = s.signedUrl;
     }
     if (r) {
-      if (!confirm("Eliminare il file?")) return;
+      if (!confirm("Delete the file?")) return;
       await sb.storage.from(BUCKET).remove([r.dataset.p]);
       await sb.from("event_files").delete().eq("id", r.dataset.rm);
       drawFiles(id, canFiles);
@@ -462,16 +461,16 @@ async function drawFiles(id, canFiles) {
 }
 async function upload(id, files) {
   for (const f of files) {
-    if (f.size > 50 * 1048576) { toast(f.name + ": troppo grande (max 50 MB)"); continue; }
+    if (f.size > 50 * 1048576) { toast(f.name + ": too large (max 50 MB)"); continue; }
     const safe = f.name.normalize("NFKD").replace(/[^\w.\-]+/g, "_").slice(-120) || "file";
     const path = `${id}/${Date.now()}_${safe}`;
-    toast("Carico " + f.name + "…");
+    toast("Uploading " + f.name + "…");
     const up = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type || "application/octet-stream" });
-    if (up.error) { toast("Errore: " + up.error.message); continue; }
+    if (up.error) { toast("Error: " + up.error.message); continue; }
     const ins = await sb.from("event_files").insert({ event_id: id, path, name: f.name, size: f.size, mime: f.type || null });
-    if (ins.error) { await sb.storage.from(BUCKET).remove([path]); toast("Errore: " + ins.error.message); continue; }
+    if (ins.error) { await sb.storage.from(BUCKET).remove([path]); toast("Error: " + ins.error.message); continue; }
   }
-  toast("File caricati");
+  toast("Files uploaded");
   drawFiles(id, true);
 }
 
@@ -479,35 +478,35 @@ async function upload(id, files) {
 $("#bOrg").onclick = openOrgs;
 function openOrgs() {
   openSheet(`
-    <h2>Organizzatori</h2>
-    <div class="sub">Solo le email in questo elenco possono entrare nel portale.</div>
+    <h2>Organizers</h2>
+    <div class="sub">Only the emails on this list can sign in to the portal.</div>
     <table class="org"><tbody>${ORGS.map(o => `<tr>
       <td class="e"><b>${esc(o.name || "—")}</b><br><small>${esc(o.email)}</small></td>
       <td>${o.role === "admin" ? `<span class="badge approved">admin</span>` : ""}</td>
-      <td style="text-align:right">${o.email !== me.email ? `<button class="btn sm no" data-del="${esc(o.email)}">Togli</button>` : ""}</td>
+      <td style="text-align:right">${o.email !== me.email ? `<button class="btn sm no" data-del="${esc(o.email)}">Remove</button>` : ""}</td>
     </tr>`).join("")}</tbody></table>
     <form id="fOrg">
       <div class="grid2">
-        <div><label for="oN">Nome</label><input id="oN" type="text" required></div>
+        <div><label for="oN">Name</label><input id="oN" type="text" required></div>
         <div><label for="oE">Email</label><input id="oE" type="email" required></div>
       </div>
-      <label><input type="checkbox" id="oA" style="width:auto;min-height:0"> Anche amministratore (può approvare)</label>
-      <div class="acts"><button type="button" class="btn" id="oC">Chiudi</button><div class="sp"></div><button class="btn pri">＋ Aggiungi</button></div>
+      <label><input type="checkbox" id="oA" style="width:auto;min-height:0"> Also administrator (can approve)</label>
+      <div class="acts"><button type="button" class="btn" id="oC">Close</button><div class="sp"></div><button class="btn pri">＋ Add</button></div>
     </form>`);
   $("#oC").onclick = closeSheet;
   $("#sheet").querySelector("table").onclick = async ev => {
     const b = ev.target.closest("[data-del]"); if (!b) return;
-    if (!confirm("Togliere " + b.dataset.del + " dagli organizzatori?")) return;
+    if (!confirm("Remove " + b.dataset.del + " from the organizers?")) return;
     const { error } = await sb.from("organizers").delete().eq("email", b.dataset.del);
-    if (error) { toast("Errore: " + error.message); return; }
+    if (error) { toast("Error: " + error.message); return; }
     await reload(); openOrgs();
   };
   $("#fOrg").onsubmit = async ev => {
     ev.preventDefault();
     const row = { name: $("#oN").value.trim(), email: $("#oE").value.trim().toLowerCase(), role: $("#oA").checked ? "admin" : "organizer" };
     const { error } = await sb.from("organizers").upsert(row);
-    if (error) { toast("Errore: " + error.message); return; }
-    toast(row.email + " aggiunto"); await reload(); openOrgs();
+    if (error) { toast("Error: " + error.message); return; }
+    toast(row.email + " added"); await reload(); openOrgs();
   };
 }
 
