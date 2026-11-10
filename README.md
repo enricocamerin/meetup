@@ -1,29 +1,34 @@
-# Meetup Hiking · calendario organizzatori
+# Meetup Hiking · event requests
 
-Portale pubblico per richiedere escursioni (interfaccia in inglese): chiunque entra
-con la sua email (link senza password), vede il calendario degli eventi approvati,
-chiede un evento e carica i file (GPX, PDF, locandine). L'amministratore riceve
-un'email, approva o rifiuta, e chi ha chiesto riceve l'email con la risposta
-(funzione `supabase/functions/notify-decision`, Gmail SMTP, segreti SMTP_USER / SMTP_PASS).
+A public portal to request hiking events. Anyone signs in with their email (a
+sign-in link, no password), sees the calendar of approved events, requests an event
+and uploads files (GPX, PDF, posters). The administrator gets an email, approves or
+rejects, and the requester gets an email with the answer
+(function `supabase/functions/notify-decision`, Gmail SMTP, secrets SMTP_USER / SMTP_PASS).
 
-- `index.html`: tutta l'app (HTML, CSS, JS, nessun build). Librerie da jsdelivr con
-  versione fissa: supabase-js 2.45.4 (MIT), FullCalendar 6.1.15 (MIT).
-- Dati, login e file: Supabase, progetto `meetup` (eu-west-1). Schema e permessi in
-  `supabase/migrations/`. La chiave nella pagina è quella pubblica: i dati sono
-  protetti dalle regole Row Level Security.
-- Sito: GitHub Pages, https://enricocamerin.github.io/meetup/ (repository pubblico; `.github/workflows/pages.yml` pubblica solo `index.html` e `robots.txt` a ogni push su `main`). Dal 2026-11-10, prima era su Netlify (`meetup-hiking`, fermo per crediti esauriti). `_headers` e `_redirects` restano per Netlify e non servono su Pages.
+- `index.html`: the whole app (HTML, CSS, JS, no build step). Libraries from jsdelivr,
+  pinned: supabase-js 2.45.4 (MIT), FullCalendar 6.1.15 (MIT).
+- Data, sign-in and files: Supabase project `meetup` (eu-west-1). Schema and
+  permissions in `supabase/migrations/`. The key in the page is the public one: the
+  data is protected by Row Level Security rules.
+- Site: GitHub Pages, https://enricocamerin.github.io/meetup/ (public repository;
+  `.github/workflows/pages.yml` publishes only `index.html` and `robots.txt` on every
+  push to `main`). Since 2026-11-10; before that it was on Netlify (`meetup-hiking`,
+  stopped when the account ran out of credits). `_headers` and `_redirects` are for
+  Netlify and are not used on Pages.
 
-## Chi può fare cosa
+## Who can do what
 
-| | Chi si iscrive | Admin |
+| | Anyone signed in | Admin |
 |---|---|---|
-| Vede gli eventi approvati e i loro file | ✓ | ✓ |
-| Vede le richieste degli altri | | ✓ |
-| Propone un evento (nasce "in attesa") | ✓ | ✓ |
-| Modifica / elimina il suo evento | solo finché è in attesa | sempre |
-| Carica file su un evento | solo sui suoi | su tutti |
-| Approva / rifiuta / rimette in attesa | | ✓ |
-| Nomina altri admin, toglie persone | | ✓ |
+| See approved events and their files | ✓ | ✓ |
+| See other people's requests | | ✓ |
+| Request an event (starts as "pending") | ✓ | ✓ |
+| Edit / delete their own event | only while pending | always |
+| Upload files to an event | only their own | all |
+| Approve / reject / set back to pending | | ✓ |
+| Make others admin, remove people | | ✓ |
 
-Chi entra per la prima volta viene aggiunto da solo alla tabella `organizers`
-(`ensure_me`) e gli si chiede il nome, che compare sugli eventi al posto dell'email.
+The first time someone signs in they are added to the `organizers` table
+automatically (`ensure_me`) and asked for their name, which is shown on events
+instead of their email.
