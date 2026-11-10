@@ -53,6 +53,10 @@ Deno.serve(async (req) => {
   if (body.kind === "new") {
     if (ev.organizer_email !== caller || ev.status !== "pending") return json({ error: "Not allowed" }, 403);
     if (Date.now() - new Date(ev.created_at).getTime() > 10 * 60 * 1000) return json({ skipped: "too old" });
+    // Claim the email first, so two calls never send it twice.
+    const { data: claim } = await admin.from("events").update({ notified_new: true })
+      .eq("id", ev.id).eq("notified_new", false).select("id");
+    if (!claim?.length) return json({ skipped: "already sent" });
     const { data: admins } = await admin.from("organizers").select("email").eq("role", "admin");
     const to = (admins || []).map((a) => a.email).filter((e) => e !== caller);
     if (!to.length) return json({ skipped: "no other admin" });
@@ -68,13 +72,20 @@ Deno.serve(async (req) => {
           ${ev.description ? `<p style="white-space:pre-line">${esc(ev.description)}</p>` : ""}
           <p><a href="${esc(app)}" style="color:#2F6B45;font-weight:bold">Approve or reject it</a></p></div>`,
       });
-    } catch (e) { return json({ error: "Email not sent: " + (e as Error).message }, 502); }
+    } catch (e) {
+      await admin.from("events").update({ notified_new: false }).eq("id", ev.id);
+      return json({ error: "Email not sent: " + (e as Error).message }, 502);
+    }
     return json({ sent: to.length });
   }
 
   // A decision: only an administrator, and only once the event is approved or rejected.
   if (me?.role !== "admin") return json({ error: "Only an administrator can send this" }, 403);
   if (ev.status !== "approved" && ev.status !== "rejected") return json({ skipped: "event is pending" });
+  // Claim the email first, so two calls never send it twice.
+  const { data: claim } = await admin.from("events").update({ notified_status: ev.status })
+    .eq("id", ev.id).eq("status", ev.status).neq("notified_status", ev.status).select("id");
+  if (!claim?.length) return json({ skipped: "already sent" });
   const { data: org } = await admin.from("organizers").select("name").eq("email", ev.organizer_email).maybeSingle();
 
   const ok = ev.status === "approved";
@@ -101,6 +112,7 @@ Deno.serve(async (req) => {
       from: { name: "Meetup Hiking", address: user }, to: ev.organizer_email, replyTo: caller, subject, text, html,
     });
   } catch (e) {
+    await admin.from("events").update({ notified_status: ev.notified_status }).eq("id", ev.id);
     return json({ error: "Email not sent: " + (e as Error).message }, 502);
   }
   return json({ sent: ev.organizer_email });

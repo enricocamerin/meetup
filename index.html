@@ -166,7 +166,7 @@ table.org td.e{overflow-wrap:anywhere}
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script>
 "use strict";
-const BUILD = "v4-public";
+const BUILD = "v5-fast";
 const SB_URL = "https://quzothoggtwvuvglyeph.supabase.co";
 const SB_KEY = "sb_publishable_dy_Mm9mK5Nzsnf5vd-00fQ_x39t3FWY"; // public key: data is protected by Row Level Security
 const BUCKET = "event-files";
@@ -373,7 +373,7 @@ function openForm(id, day) {
     $("#eOk").disabled = false;
     if (r.error) { toast("Error: " + r.error.message); return; }
     toast(id ? "Event saved" : "Request sent: you will get an email when it is approved");
-    if (!id) sb.functions.invoke("notify-decision", { body: { event_id: r.data.id, kind: "new" } }).then(x => { if (x.error) console.warn("notify new", x.error); });
+    if (!id) notifyLater({ event_id: r.data.id, kind: "new" });
     await reload(); openDetail(r.data.id);
   };
 }
@@ -443,19 +443,26 @@ async function openDetail(id) {
   drawFiles(id, canFiles);
 }
 
+let DECIDING = false;
 async function decide(id, status, note) {
+  if (DECIDING) return;
+  DECIDING = true;
+  document.querySelectorAll("#dA,#dR,#dP,[data-ap],[data-rj]").forEach(b => b.disabled = true);
   const row = { status }; if (note !== undefined) row.admin_note = note;
   const { error } = await sb.from("events").update(row).eq("id", id);
-  if (error) { toast("Error: " + error.message); return; }
-  let msg = status === "approved" ? "Event approved" : status === "rejected" ? "Event rejected" : "Event back to pending";
-  if (status !== "pending") {
-    const r = await sb.functions.invoke("notify-decision", { body: { event_id: id } });
-    msg += r.error ? " · email NOT sent to the organizer" : " · email sent to the organizer";
-    if (r.error) console.warn("notify-decision", r.error);
-  }
-  toast(msg);
+  DECIDING = false;
+  if (error) { toast("Error: " + error.message); drawPend(); return; }
+  toast(status === "approved" ? "Event approved" : status === "rejected" ? "Event rejected" : "Event back to pending");
   await reload();
   if (!$("#veil").classList.contains("hidden")) openDetail(id);
+  if (status !== "pending") notifyLater({ event_id: id }, "Email sent to the organizer", "Email to the organizer NOT sent");
+}
+// The email takes several seconds (Gmail): send it in the background, tell when done.
+function notifyLater(body, okMsg, failMsg) {
+  sb.functions.invoke("notify-decision", { body }).then(r => {
+    if (r.error) { console.warn("notify-decision", r.error); if (failMsg) toast(failMsg); }
+    else if (okMsg && r.data && r.data.sent) toast(okMsg);
+  });
 }
 
 /* ---------- files ---------- */
