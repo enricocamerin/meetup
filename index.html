@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meetup Hiking · Calendario organizzatori</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F2; --card:#FFFFFF; --edge:#DDE3DA; --text:#1C2B21; --muted:#5E6E63;
+  --brand:#2F6B45; --brand-2:#E7F0E9;
+  --ok:#2E7D4F; --ok-bg:#E3F3E8; --wait:#B7791F; --wait-bg:#FDF3DC; --no:#B23A3A; --no-bg:#FBE6E6;
+  --r:12px; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,system-ui,sans-serif;overflow-x:clip}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #7FB08F;outline-offset:2px}
+.hidden{display:none!important}
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--edge);
+  display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top))}
+header .logo{font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+header .logo svg{flex:none}
+header .sp{flex:1}
+header .who{font-size:13px;color:var(--muted);max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.btn{border:1px solid var(--edge);background:var(--card);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600;min-height:40px}
+.btn:hover{background:#F6F8F5}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.pri:hover{background:#285C3B}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.no{background:#fff;border-color:var(--no);color:var(--no)}
+.btn.sm{padding:6px 10px;min-height:34px;font-size:14px}
+.btn[disabled]{opacity:.5;cursor:default}
+.card{background:var(--card);border:1px solid var(--edge);border-radius:var(--r);box-shadow:var(--shadow)}
+/* login */
+.login{max-width:420px;margin:8vh auto 0;padding:28px}
+.login h1{margin:0 0 6px;font-size:24px}
+.login p{color:var(--muted);margin:0 0 18px}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 6px}
+input[type=text],input[type=email],input[type=date],input[type=number],textarea,select{
+  width:100%;border:1px solid var(--edge);border-radius:10px;padding:10px 12px;background:#fff;min-height:42px}
+textarea{min-height:90px;resize:vertical}
+.msg{margin-top:14px;padding:10px 12px;border-radius:10px;font-size:14px}
+.msg.ok{background:var(--ok-bg);color:var(--ok)}
+.msg.err{background:var(--no-bg);color:var(--no)}
+/* toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar .sp{flex:1}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--edge);border-radius:999px;padding:5px 11px;font-size:13px;background:#fff;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--brand-2);border-color:var(--brand);color:var(--brand);font-weight:600}
+#cal{padding:10px}
+/* FullCalendar tweaks */
+.fc{--fc-border-color:var(--edge);--fc-today-bg-color:#F2F8EF;--fc-button-bg-color:#fff;--fc-button-text-color:var(--text);
+  --fc-button-border-color:var(--edge);--fc-button-hover-bg-color:#F3F6F2;--fc-button-hover-border-color:var(--edge);
+  --fc-button-active-bg-color:var(--brand-2);--fc-button-active-border-color:var(--brand);font-size:14px}
+.fc .fc-button{font-weight:600;text-transform:none;box-shadow:none!important}
+.fc .fc-button-primary:not(:disabled).fc-button-active{color:var(--brand)}
+.fc .fc-toolbar-title{font-size:18px;font-weight:700;text-transform:capitalize}
+.fc .fc-daygrid-day{cursor:pointer}
+.fc-event{border-radius:6px;padding:1px 4px;font-weight:600;cursor:pointer}
+.fc-event.st-pending{background:var(--wait-bg);border:1px dashed var(--wait);color:#7A4E0E}
+.fc-event.st-approved{background:var(--ok);border:1px solid var(--ok);color:#fff}
+.fc-event.st-rejected{background:var(--no-bg);border:1px solid var(--no);color:var(--no);text-decoration:line-through}
+.fc-event .fc-event-title,.fc-event .fc-event-main{color:inherit}
+@media (max-width:600px){.fc .fc-toolbar{flex-wrap:wrap;gap:6px}.fc .fc-toolbar-title{font-size:16px}}
+/* list of pending */
+.pend{margin-top:16px;padding:14px}
+.pend h2{margin:0 0 10px;font-size:16px}
+.row{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--edge);flex-wrap:wrap}
+.row:first-of-type{border-top:0}
+.row .t{flex:1 1 220px;min-width:0}
+.row .t b{display:block;overflow-wrap:anywhere}
+.row small{color:var(--muted)}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px}
+.badge.pending{background:var(--wait-bg);color:#7A4E0E}
+.badge.approved{background:var(--ok-bg);color:var(--ok)}
+.badge.rejected{background:var(--no-bg);color:var(--no)}
+/* sheet */
+.veil{position:fixed;inset:0;background:rgba(20,30,24,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:700px){.veil{align-items:center}}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+@media (min-width:700px){.sheet{border-radius:16px}}
+.sheet h2{margin:0 0 4px;font-size:20px;overflow-wrap:anywhere}
+.sheet .sub{color:var(--muted);font-size:14px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.acts .sp{flex:1}
+.warn{background:var(--wait-bg);color:#7A4E0E;border-radius:10px;padding:8px 12px;font-size:14px;margin-top:10px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px;margin:10px 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;overflow-wrap:anywhere;white-space:pre-line}
+.files{margin-top:14px;border-top:1px solid var(--edge);padding-top:12px}
+.files h3{margin:0 0 8px;font-size:15px}
+.file{display:flex;gap:8px;align-items:center;padding:6px 0}
+.file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--brand);font-weight:600}
+.file small{color:var(--muted)}
+.drop{display:block;border:2px dashed var(--edge);border-radius:12px;padding:14px;text-align:center;color:var(--muted);cursor:pointer;margin-top:8px}
+.drop.on{border-color:var(--brand);background:var(--brand-2)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1C2B21;color:#fff;
+  padding:10px 16px;border-radius:10px;z-index:80;font-weight:600;max-width:90vw}
+table.org{width:100%;border-collapse:collapse;font-size:14px}
+table.org td{padding:8px 4px;border-top:1px solid var(--edge);vertical-align:middle}
+table.org td.e{overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20 9 8l4 6 3-4 6 10z" fill="#2F6B45"/><circle cx="17" cy="5" r="2.2" fill="#B7791F"/></svg>
+    Meetup Hiking
+  </div>
+  <div class="sp"></div>
+  <span class="who" id="who"></span>
+  <button class="btn sm hidden" id="bOrg">Organizzatori</button>
+  <button class="btn sm hidden" id="bOut">Esci</button>
+</header>
+
+<main>
+  <section id="vLogin" class="card login hidden">
+    <h1>Accesso organizzatori</h1>
+    <p>Scrivi la tua email: ti mandiamo un link per entrare, senza password.</p>
+    <form id="fLogin">
+      <label for="lEmail">Email</label>
+      <input id="lEmail" type="email" autocomplete="email" required>
+      <button class="btn pri" style="width:100%;margin-top:14px" id="lBtn">Mandami il link</button>
+    </form>
+    <div id="lMsg"></div>
+  </section>
+
+  <section id="vNo" class="card login hidden">
+    <h1>Accesso non abilitato</h1>
+    <p id="noTxt"></p>
+    <button class="btn" id="noOut">Esci</button>
+  </section>
+
+  <section id="vApp" class="hidden">
+    <div class="bar">
+      <button class="btn pri" id="bNew">＋ Proponi un evento</button>
+      <div class="sp"></div>
+      <div class="legend">
+        <span style="--c:var(--ok)">Approvato</span>
+        <span style="--c:var(--wait)">In attesa</span>
+        <span style="--c:var(--no)">Rifiutato</span>
+      </div>
+    </div>
+    <div class="bar" role="group" aria-label="Filtri">
+      <button class="chip" data-f="all" aria-pressed="true">Tutti</button>
+      <button class="chip" data-f="mine" aria-pressed="false">Solo i miei</button>
+      <button class="chip" data-f="rej" aria-pressed="false">Mostra rifiutati</button>
+    </div>
+    <div class="card" id="cal"></div>
+    <div class="card pend" id="pend"></div>
+  </section>
+</main>
+
+<div id="veil" class="veil hidden" role="dialog" aria-modal="true"><div class="sheet" id="sheet"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/it.global.min.js"></script>
+<script>
+"use strict";
+const BUILD = "v1";
+const SB_URL = "https://quzothoggtwvuvglyeph.supabase.co";
+const SB_KEY = "sb_publishable_dy_Mm9mK5Nzsnf5vd-00fQ_x39t3FWY"; // public key: data is protected by Row Level Security
+const BUCKET = "event-files";
+const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: "pkce" } });
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ST = { pending: "In attesa", approved: "Approvato", rejected: "Rifiutato" };
+let me = null;          // { email, name, role }
+let EVENTS = [];
+let ORGS = [];
+let FILTER = { mine: false, rej: false };
+let cal = null;
+
+function toast(t) {
+  const d = document.createElement("div"); d.className = "toast"; d.textContent = t;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 2600);
+}
+function show(id) { for (const v of ["vLogin", "vNo", "vApp"]) $("#" + v).classList.toggle("hidden", v !== id); }
+const fmtD = d => new Date(d + "T12:00:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+function rangeTxt(e) { return e.starts_on === e.ends_on ? fmtD(e.starts_on) : fmtD(e.starts_on) + " → " + fmtD(e.ends_on); }
+function addDays(d, n) { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); }
+function orgName(email) { const o = ORGS.find(o => o.email === email); return o && o.name ? o.name : email; }
+const isAdmin = () => me && me.role === "admin";
+
+/* ---------- auth ---------- */
+$("#fLogin").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const email = $("#lEmail").value.trim().toLowerCase();
+  $("#lBtn").disabled = true;
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
+  $("#lBtn").disabled = false;
+  $("#lMsg").innerHTML = error
+    ? `<div class="msg err">Non è stato possibile mandare il link: ${esc(error.message)}</div>`
+    : `<div class="msg ok">Fatto. Apri l'email che ti abbiamo mandato a <b>${esc(email)}</b> e tocca il link (guarda anche nello spam).</div>`;
+});
+async function logout() { await sb.auth.signOut(); location.reload(); }
+$("#bOut").onclick = logout; $("#noOut").onclick = logout;
+
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { show("vLogin"); return; }
+  const email = (session.user.email || "").toLowerCase();
+  $("#who").textContent = email;
+  $("#bOut").classList.remove("hidden");
+  const { data, error } = await sb.from("organizers").select("*").eq("email", email).maybeSingle();
+  if (error || !data) {
+    $("#noTxt").textContent = `L'email ${email} non è nell'elenco degli organizzatori. Chiedi all'amministratore di aggiungerla.`;
+    show("vNo"); return;
+  }
+  me = data;
+  $("#who").textContent = (me.name || email) + (isAdmin() ? " · admin" : "");
+  $("#bOrg").classList.toggle("hidden", !isAdmin());
+  show("vApp");
+  initCal();
+  await reload();
+}
+sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_IN" && !me) boot(); });
+
+/* ---------- data ---------- */
+async function reload() {
+  const [ev, og] = await Promise.all([
+    sb.from("events").select("*").order("starts_on"),
+    sb.from("organizers").select("*").order("name")
+  ]);
+  if (ev.error) { toast("Errore nel leggere gli eventi"); return; }
+  EVENTS = ev.data; ORGS = og.data || [];
+  drawCal(); drawPend();
+}
+function visible() {
+  return EVENTS.filter(e => (FILTER.rej || e.status !== "rejected") && (!FILTER.mine || e.organizer_email === me.email));
+}
+
+/* ---------- calendar ---------- */
+function initCal() {
+  if (cal) return;
+  cal = new FullCalendar.Calendar($("#cal"), {
+    locale: "it", firstDay: 1, initialView: "dayGridMonth", height: "auto",
+    headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,listYear" },
+    buttonText: { today: "Oggi", month: "Mese", list: "Elenco" },
+    dayMaxEvents: 3, fixedWeekCount: false,
+    dateClick: info => openForm(null, info.dateStr),
+    eventClick: info => { info.jsEvent.preventDefault(); openDetail(info.event.id); },
+    eventClassNames: a => ["st-" + a.event.extendedProps.status]
+  });
+  cal.render();
+}
+function drawCal() {
+  if (!cal) return;
+  cal.removeAllEvents();
+  for (const e of visible()) {
+    cal.addEvent({
+      id: e.id, start: e.starts_on, end: addDays(e.ends_on, 1), allDay: true,
+      title: (e.status === "pending" ? "⏳ " : "") + e.title + " · " + orgName(e.organizer_email),
+      extendedProps: { status: e.status }
+    });
+  }
+}
+function drawPend() {
+  const list = EVENTS.filter(e => e.status === "pending" && (isAdmin() || e.organizer_email === me.email));
+  const h = isAdmin() ? "Da approvare" : "I miei eventi in attesa";
+  $("#pend").innerHTML = `<h2>${h} · ${list.length}</h2>` + (list.length ? list.map(e => `
+    <div class="row">
+      <div class="t"><b>${esc(e.title)}</b><small>${esc(rangeTxt(e))} · ${esc(orgName(e.organizer_email))}</small></div>
+      ${isAdmin() ? `<button class="btn sm ok" data-ap="${e.id}">Approva</button><button class="btn sm no" data-rj="${e.id}">Rifiuta</button>` : ""}
+      <button class="btn sm" data-op="${e.id}">Apri</button>
+    </div>`).join("") : `<small style="color:var(--muted)">Niente in attesa.</small>`);
+}
+$("#pend").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.op) openDetail(b.dataset.op);
+  if (b.dataset.ap) decide(b.dataset.ap, "approved");
+  if (b.dataset.rj) decide(b.dataset.rj, "rejected");
+});
+document.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+  const f = c.dataset.f;
+  if (f === "all") FILTER.mine = false;
+  if (f === "mine") FILTER.mine = !FILTER.mine;
+  if (f === "rej") FILTER.rej = !FILTER.rej;
+  $('.chip[data-f="all"]').setAttribute("aria-pressed", String(!FILTER.mine));
+  $('.chip[data-f="mine"]').setAttribute("aria-pressed", String(FILTER.mine));
+  $('.chip[data-f="rej"]').setAttribute("aria-pressed", String(FILTER.rej));
+  drawCal();
+});
+$("#bNew").onclick = () => openForm(null, new Date().toISOString().slice(0, 10));
+
+/* ---------- sheet ---------- */
+let lastFocus = null;
+function openSheet(html) {
+  lastFocus = document.activeElement;
+  $("#sheet").innerHTML = html; $("#veil").classList.remove("hidden");
+  const f = $("#sheet").querySelector("input,textarea,button"); if (f) f.focus();
+}
+function closeSheet() { $("#veil").classList.add("hidden"); $("#sheet").innerHTML = ""; if (lastFocus) lastFocus.focus(); }
+$("#veil").addEventListener("click", e => { if (e.target.id === "veil") closeSheet(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#veil").classList.contains("hidden")) closeSheet(); });
+
+function overlaps(start, end, skipId) {
+  return EVENTS.filter(e => e.id !== skipId && e.status === "approved" && e.starts_on <= end && e.ends_on >= start);
+}
+
+/* ---------- create / edit ---------- */
+function openForm(id, day) {
+  const e = id ? EVENTS.find(x => x.id === id) : { title: "", description: "", starts_on: day, ends_on: day, meeting_point: "", difficulty: "", max_people: "" };
+  openSheet(`
+    <h2>${id ? "Modifica evento" : "Proponi un evento"}</h2>
+    <div class="sub">${id ? "" : "L'evento resta in attesa finché l'amministratore non lo approva."}</div>
+    <form id="fEv">
+      <label for="eT">Titolo</label><input id="eT" type="text" maxlength="200" required value="${esc(e.title)}">
+      <div class="grid2">
+        <div><label for="eS">Dal</label><input id="eS" type="date" required value="${esc(e.starts_on)}"></div>
+        <div><label for="eE">Al</label><input id="eE" type="date" required value="${esc(e.ends_on)}"></div>
+      </div>
+      <div id="eW"></div>
+      <label for="eM">Ritrovo</label><input id="eM" type="text" value="${esc(e.meeting_point)}" placeholder="Luogo e ora">
+      <div class="grid2">
+        <div><label for="eD">Difficoltà</label>
+          <select id="eD">${["", "T · Turistico", "E · Escursionistico", "EE · Esperti", "EEA · Attrezzato"].map(v => `<option ${v === e.difficulty ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></div>
+        <div><label for="eP">Posti massimi</label><input id="eP" type="number" min="1" value="${esc(e.max_people ?? "")}"></div>
+      </div>
+      <label for="eX">Descrizione</label><textarea id="eX">${esc(e.description)}</textarea>
+      <div class="acts"><button type="button" class="btn" id="eC">Annulla</button><div class="sp"></div>
+        <button class="btn pri" id="eOk">${id ? "Salva" : "Invia per approvazione"}</button></div>
+    </form>`);
+  const warn = () => {
+    const s = $("#eS").value, en = $("#eE").value || s;
+    if (en < s) $("#eE").value = s;
+    const o = s ? overlaps(s, $("#eE").value, id) : [];
+    $("#eW").innerHTML = o.length ? `<div class="warn">In quei giorni c'è già: ${o.map(x => esc(x.title)).join(", ")}</div>` : "";
+  };
+  $("#eS").onchange = () => { if ($("#eE").value < $("#eS").value) $("#eE").value = $("#eS").value; warn(); };
+  $("#eE").onchange = warn; warn();
+  $("#eC").onclick = closeSheet;
+  $("#fEv").onsubmit = async ev => {
+    ev.preventDefault();
+    const row = {
+      title: $("#eT").value.trim(), starts_on: $("#eS").value, ends_on: $("#eE").value || $("#eS").value,
+      meeting_point: $("#eM").value.trim(), difficulty: $("#eD").value, description: $("#eX").value.trim(),
+      max_people: $("#eP").value ? +$("#eP").value : null
+    };
+    $("#eOk").disabled = true;
+    const r = id ? await sb.from("events").update(row).eq("id", id).select().single()
+                 : await sb.from("events").insert(row).select().single();
+    $("#eOk").disabled = false;
+    if (r.error) { toast("Errore: " + r.error.message); return; }
+    toast(id ? "Evento salvato" : "Evento inviato: in attesa di approvazione");
+    await reload(); openDetail(r.data.id);
+  };
+}
+
+/* ---------- detail ---------- */
+async function openDetail(id) {
+  const e = EVENTS.find(x => x.id === id); if (!e) return;
+  const mine = e.organizer_email === me.email;
+  const canEdit = isAdmin() || (mine && e.status === "pending");
+  const canFiles = isAdmin() || mine;
+  const o = overlaps(e.starts_on, e.ends_on, e.id);
+  openSheet(`
+    <span class="badge ${e.status}">${ST[e.status]}</span>
+    <h2 style="margin-top:8px">${esc(e.title)}</h2>
+    <div class="sub">${esc(rangeTxt(e))}</div>
+    ${o.length && e.status !== "rejected" ? `<div class="warn">Negli stessi giorni è già approvato: ${o.map(x => esc(x.title)).join(", ")}</div>` : ""}
+    <dl class="kv">
+      <dt>Organizzatore</dt><dd>${esc(orgName(e.organizer_email))}</dd>
+      ${e.meeting_point ? `<dt>Ritrovo</dt><dd>${esc(e.meeting_point)}</dd>` : ""}
+      ${e.difficulty ? `<dt>Difficoltà</dt><dd>${esc(e.difficulty)}</dd>` : ""}
+      ${e.max_people ? `<dt>Posti</dt><dd>${esc(e.max_people)}</dd>` : ""}
+      ${e.description ? `<dt>Descrizione</dt><dd>${esc(e.description)}</dd>` : ""}
+      ${e.admin_note ? `<dt>Nota admin</dt><dd>${esc(e.admin_note)}</dd>` : ""}
+      ${e.decided_at ? `<dt>Deciso il</dt><dd>${esc(new Date(e.decided_at).toLocaleString("it-IT"))}</dd>` : ""}
+    </dl>
+    ${isAdmin() ? `
+      <label for="dN">Nota per l'organizzatore (facoltativa)</label>
+      <input id="dN" type="text" value="${esc(e.admin_note)}">
+      <div class="acts">
+        ${e.status !== "approved" ? `<button class="btn ok" id="dA">✓ Approva</button>` : ""}
+        ${e.status !== "rejected" ? `<button class="btn no" id="dR">✕ Rifiuta</button>` : ""}
+        ${e.status !== "pending" ? `<button class="btn" id="dP">Rimetti in attesa</button>` : ""}
+      </div>` : ""}
+    <div class="files"><h3>File</h3><div id="fl"><small>Caricamento…</small></div>
+      ${canFiles ? `<label class="drop" id="drop">Tocca per caricare un file (GPX, PDF, foto…, max 50 MB)
+        <input type="file" id="fIn" multiple class="hidden"></label>` : ""}
+    </div>
+    <div class="acts">
+      ${canEdit ? `<button class="btn" id="dE">Modifica</button><button class="btn no" id="dX">Elimina</button>` : ""}
+      <div class="sp"></div><button class="btn" id="dC">Chiudi</button>
+    </div>`);
+  $("#dC").onclick = closeSheet;
+  if (isAdmin()) {
+    const note = () => $("#dN").value.trim();
+    if ($("#dA")) $("#dA").onclick = () => decide(id, "approved", note());
+    if ($("#dR")) $("#dR").onclick = () => decide(id, "rejected", note());
+    if ($("#dP")) $("#dP").onclick = () => decide(id, "pending", note());
+  }
+  if (canEdit) {
+    $("#dE").onclick = () => openForm(id);
+    $("#dX").onclick = async () => {
+      if (!confirm("Eliminare l'evento e i suoi file?")) return;
+      const { data: fs } = await sb.from("event_files").select("path").eq("event_id", id);
+      if (fs && fs.length) await sb.storage.from(BUCKET).remove(fs.map(f => f.path));
+      const { error } = await sb.from("events").delete().eq("id", id);
+      if (error) { toast("Errore: " + error.message); return; }
+      toast("Evento eliminato"); closeSheet(); reload();
+    };
+  }
+  if (canFiles) {
+    $("#fIn").onchange = ev => upload(id, ev.target.files);
+    const d = $("#drop");
+    d.addEventListener("dragover", ev => { ev.preventDefault(); d.classList.add("on"); });
+    d.addEventListener("dragleave", () => d.classList.remove("on"));
+    d.addEventListener("drop", ev => { ev.preventDefault(); d.classList.remove("on"); upload(id, ev.dataTransfer.files); });
+  }
+  drawFiles(id, canFiles);
+}
+
+async function decide(id, status, note) {
+  const row = { status }; if (note !== undefined) row.admin_note = note;
+  const { error } = await sb.from("events").update(row).eq("id", id);
+  if (error) { toast("Errore: " + error.message); return; }
+  toast(status === "approved" ? "Evento approvato" : status === "rejected" ? "Evento rifiutato" : "Evento rimesso in attesa");
+  await reload();
+  if (!$("#veil").classList.contains("hidden")) openDetail(id);
+}
+
+/* ---------- files ---------- */
+const kb = n => n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " kB";
+async function drawFiles(id, canFiles) {
+  const box = $("#fl"); if (!box) return;
+  const { data, error } = await sb.from("event_files").select("*").eq("event_id", id).order("created_at");
+  if (error) { box.innerHTML = `<small>Errore nel leggere i file.</small>`; return; }
+  if (!data.length) { box.innerHTML = `<small style="color:var(--muted)">Nessun file.</small>`; return; }
+  box.innerHTML = data.map(f => `<div class="file">
+      <a href="#" data-dl="${esc(f.path)}" data-n="${esc(f.name)}">${esc(f.name)}</a>
+      <small>${f.size ? kb(f.size) : ""}</small>
+      ${canFiles ? `<button class="btn sm" data-rm="${f.id}" data-p="${esc(f.path)}" aria-label="Elimina ${esc(f.name)}">✕</button>` : ""}
+    </div>`).join("");
+  box.onclick = async ev => {
+    const a = ev.target.closest("[data-dl]"), r = ev.target.closest("[data-rm]");
+    if (a) {
+      ev.preventDefault();
+      const { data: s, error } = await sb.storage.from(BUCKET).createSignedUrl(a.dataset.dl, 600, { download: a.dataset.n });
+      if (error) { toast("Errore: " + error.message); return; }
+      location.href = s.signedUrl;
+    }
+    if (r) {
+      if (!confirm("Eliminare il file?")) return;
+      await sb.storage.from(BUCKET).remove([r.dataset.p]);
+      await sb.from("event_files").delete().eq("id", r.dataset.rm);
+      drawFiles(id, canFiles);
+    }
+  };
+}
+async function upload(id, files) {
+  for (const f of files) {
+    if (f.size > 50 * 1048576) { toast(f.name + ": troppo grande (max 50 MB)"); continue; }
+    const safe = f.name.normalize("NFKD").replace(/[^\w.\-]+/g, "_").slice(-120) || "file";
+    const path = `${id}/${Date.now()}_${safe}`;
+    toast("Carico " + f.name + "…");
+    const up = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type || "application/octet-stream" });
+    if (up.error) { toast("Errore: " + up.error.message); continue; }
+    const ins = await sb.from("event_files").insert({ event_id: id, path, name: f.name, size: f.size, mime: f.type || null });
+    if (ins.error) { await sb.storage.from(BUCKET).remove([path]); toast("Errore: " + ins.error.message); continue; }
+  }
+  toast("File caricati");
+  drawFiles(id, true);
+}
+
+/* ---------- organizers (admin) ---------- */
+$("#bOrg").onclick = openOrgs;
+function openOrgs() {
+  openSheet(`
+    <h2>Organizzatori</h2>
+    <div class="sub">Solo le email in questo elenco possono entrare nel portale.</div>
+    <table class="org"><tbody>${ORGS.map(o => `<tr>
+      <td class="e"><b>${esc(o.name || "—")}</b><br><small>${esc(o.email)}</small></td>
+      <td>${o.role === "admin" ? `<span class="badge approved">admin</span>` : ""}</td>
+      <td style="text-align:right">${o.email !== me.email ? `<button class="btn sm no" data-del="${esc(o.email)}">Togli</button>` : ""}</td>
+    </tr>`).join("")}</tbody></table>
+    <form id="fOrg">
+      <div class="grid2">
+        <div><label for="oN">Nome</label><input id="oN" type="text" required></div>
+        <div><label for="oE">Email</label><input id="oE" type="email" required></div>
+      </div>
+      <label><input type="checkbox" id="oA" style="width:auto;min-height:0"> Anche amministratore (può approvare)</label>
+      <div class="acts"><button type="button" class="btn" id="oC">Chiudi</button><div class="sp"></div><button class="btn pri">＋ Aggiungi</button></div>
+    </form>`);
+  $("#oC").onclick = closeSheet;
+  $("#sheet").querySelector("table").onclick = async ev => {
+    const b = ev.target.closest("[data-del]"); if (!b) return;
+    if (!confirm("Togliere " + b.dataset.del + " dagli organizzatori?")) return;
+    const { error } = await sb.from("organizers").delete().eq("email", b.dataset.del);
+    if (error) { toast("Errore: " + error.message); return; }
+    await reload(); openOrgs();
+  };
+  $("#fOrg").onsubmit = async ev => {
+    ev.preventDefault();
+    const row = { name: $("#oN").value.trim(), email: $("#oE").value.trim().toLowerCase(), role: $("#oA").checked ? "admin" : "organizer" };
+    const { error } = await sb.from("organizers").upsert(row);
+    if (error) { toast("Errore: " + error.message); return; }
+    toast(row.email + " aggiunto"); await reload(); openOrgs();
+  };
+}
+
+boot();
+</script>
+</body>
+</html>
