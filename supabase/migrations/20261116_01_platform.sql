@@ -1,4 +1,4 @@
--- Written 2026-11-16 (migration "platform"). NOT APPLIED YET: the confirmation request timed out.
+-- Written 2026-11-16 (migration "platform"). NOT APPLIED YET: the Supabase confirmation request timed out.
 -- From a single approval calendar to a Meetup-style platform:
 --   profiles (keyed by the Supabase user id, no emails in public tables), groups with
 --   per-group roles, membership requests, events v2 (time, map point, route data, fees,
