@@ -1,4 +1,4 @@
--- Written 2026-11-16 (migration "platform"). NOT APPLIED YET: waiting for the owner to confirm.
+-- Written 2026-11-16 (migration "platform"). NOT APPLIED YET: the confirmation request timed out.
 -- From a single approval calendar to a Meetup-style platform:
 --   profiles (keyed by the Supabase user id, no emails in public tables), groups with
 --   per-group roles, membership requests, events v2 (time, map point, route data, fees,
@@ -11,21 +11,15 @@
 create extension if not exists pg_cron;
 create extension if not exists pg_net with schema extensions;
 
--- ---------------------------------------------------------------- keep the old data
-drop table if exists _adm; drop table if exists _ev;
-create temp table _adm as
-  select u.id, o.name, o.created_at from public.organizers o join auth.users u on lower(u.email) = o.email where o.role = 'admin';
-create temp table _ev as
-  select e.*, u.id as uid from public.events e left join auth.users u on lower(u.email) = e.organizer_email;
-
--- ---------------------------------------------------------------- drop the old schema
-drop policy if exists "event files read" on storage.objects;
-drop policy if exists "event files upload" on storage.objects;
-drop policy if exists "event files delete" on storage.objects;
-drop table if exists public.event_files, public.events, public.organizers cascade;
-drop function if exists public.ensure_me(), public.set_my_name(text);
-drop function if exists private.events_guard(), private.can_see_event(uuid), private.can_edit_event(uuid),
-  private.is_member(), private.is_admin(), private.my_email();
+-- ---------------------------------------------------------------- park the old schema
+-- The old tables move to schema "legacy" (not exposed by the API, indexes move with them);
+-- 20261116_02_drop_legacy.sql deletes it. Old functions become inert.
+create schema if not exists legacy;
+revoke all on schema legacy from public, anon, authenticated;
+alter table public.event_files set schema legacy;
+alter table public.events set schema legacy;
+alter table public.organizers set schema legacy;
+revoke all on function public.ensure_me(), public.set_my_name(text) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- tables
 create table public.profiles (
@@ -744,35 +738,34 @@ create policy files_insert on public.event_files for insert to authenticated
   with check (private.can_host(event_id) and uploaded_by = (select auth.uid()));
 create policy files_delete on public.event_files for delete to authenticated using (private.can_host(event_id));
 
--- Files: event-files/<event id>/<file>; readable by whoever can see the event.
-create policy "event files read" on storage.objects for select to anon, authenticated
+alter policy "event files read" on storage.objects to anon, authenticated
   using (bucket_id = 'event-files' and private.can_see_event(((storage.foldername(name))[1])::uuid));
-create policy "event files upload" on storage.objects for insert to authenticated
+alter policy "event files upload" on storage.objects to authenticated
   with check (bucket_id = 'event-files' and private.can_host(((storage.foldername(name))[1])::uuid));
-create policy "event files delete" on storage.objects for delete to authenticated
+alter policy "event files delete" on storage.objects to authenticated
   using (bucket_id = 'event-files' and private.can_host(((storage.foldername(name))[1])::uuid));
 
 -- ---------------------------------------------------------------- move the old data
 select set_config('app.sys', '1', false);
 insert into public.profiles (id) select id from auth.users on conflict do nothing;
-update public.profiles p set name = a.name, is_admin = true from _adm a where a.id = p.id;
+update public.profiles p set name = o.name, is_admin = true
+  from legacy.organizers o join auth.users u on lower(u.email) = o.email where o.role = 'admin' and u.id = p.id;
 insert into public.groups (slug, name, description, area, status, created_by)
 select 'meetup-hiking', 'Meetup Hiking',
   'Hikes in the mountains for everyone: from easy walks to equipped routes. Join the group, sign up for the next outing and meet new people on the trail.',
-  '', 'active', (select id from _adm order by created_at limit 1);
+  '', 'active', (select u.id from legacy.organizers o join auth.users u on lower(u.email) = o.email where o.role = 'admin' order by o.created_at limit 1);
 insert into public.memberships (group_id, user_id, role)
-select g.id, a.id, 'owner' from _adm a cross join public.groups g where g.slug = 'meetup-hiking';
+select g.id, u.id, 'owner' from legacy.organizers o join auth.users u on lower(u.email) = o.email
+  cross join public.groups g where o.role = 'admin' and g.slug = 'meetup-hiking';
 insert into public.events (id, group_id, title, description, starts_on, ends_on, meeting_point, max_people, status, admin_note,
   organizer_id, organizer_name, created_at, updated_at, decided_at)
 select e.id, g.id, e.title, e.description, e.starts_on, e.ends_on, e.meeting_point, e.max_people, e.status, e.admin_note,
-  e.uid, coalesce(e.organizer_name, ''), e.created_at, e.updated_at, e.decided_at
-from _ev e cross join public.groups g where g.slug = 'meetup-hiking';
+  u.id, coalesce(e.organizer_name, ''), e.created_at, e.updated_at, e.decided_at
+from legacy.events e left join auth.users u on lower(u.email) = e.organizer_email cross join public.groups g where g.slug = 'meetup-hiking';
 update public.groups g set member_count = (select count(*) from public.memberships m where m.group_id = g.id and m.status = 'active');
 select set_config('app.sys', '0', false);
-drop table _adm; drop table _ev;
 
 -- ---------------------------------------------------------------- schedules
-select cron.unschedule(jobid) from cron.job where jobname in ('meetup-flush-outbox', 'meetup-reminders');
 select cron.schedule('meetup-flush-outbox', '* * * * *', $cron$
   select net.http_post(url := 'https://quzothoggtwvuvglyeph.supabase.co/functions/v1/api?a=flush',
     body := '{}'::jsonb, headers := '{"Content-Type":"application/json"}'::jsonb)
