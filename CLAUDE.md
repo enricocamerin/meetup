@@ -8,7 +8,8 @@ the interface is in English (owner's request, 2026-11-10).
   migration in `supabase/migrations/` + `apply_migration`, then `get_advisors`.
 - The permission helper functions live in schema `private` (not exposed by the API).
 - Never personal data (emails, names) in the repository: the first admin was added by hand.
-- Publishing: push to `main` → GitHub Pages (workflow `pages.yml`). The repository is
+- Publishing: push to `main` → GitHub Pages (workflow `pages.yml`). Cloudflare Pages is prepared
+  (`scripts/cf_pages_build.py`, see README); both publish from `main`. The repository is
   public: no secrets, no personal data.
 - User text always goes through `esc()` before `innerHTML`.
 - Must work on a phone (390 px, no sideways scroll).

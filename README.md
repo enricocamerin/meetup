@@ -14,8 +14,12 @@ rejects, and the requester gets an email with the answer
 - Site: GitHub Pages, https://enricocamerin.github.io/meetup/ (public repository;
   `.github/workflows/pages.yml` publishes only `index.html` and `robots.txt` on every
   push to `main`). Since 2026-11-10; before that it was on Netlify (`meetup-hiking`,
-  stopped when the account ran out of credits). `_headers` and `_redirects` are for
-  Netlify and are not used on Pages.
+  stopped when the account ran out of credits). `_redirects` is for Netlify only.
+- Cloudflare Pages (prepared 2026-11-20): build command `python3 scripts/cf_pages_build.py`,
+  output `dist`, branch `main`, preset None. It publishes `index.html`, `robots.txt`, `_headers`.
+  When the Cloudflare address is live, add it to Supabase › Authentication › URL Configuration
+  (Site URL / Redirect URLs) and set the function secret `APP_URL` to it, otherwise the sign-in
+  links and the emails still point to GitHub Pages.
 
 ## Who can do what
 
